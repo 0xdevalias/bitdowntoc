@@ -9,17 +9,23 @@ enum class BitProfiles(val displayName: String) {
     GENERIC("Generic"),
     GITHUB("GitHub"),
     GITLAB("Gitlab"),
+    GITLAB17("Gitlab 17+"),
     DEVTO("dev.to");
 
     companion object {
         fun BitGenerator.Params.defaults() =
-            copy(generateAnchors = false, concatSpaces = true, anchorAlgorithm = AnchorAlgorithm.DEFAULT, commentStyle = HTML)
+            copy(
+                generateAnchors = false,
+                concatSpaces = true,
+                anchorAlgorithm = AnchorAlgorithm.DEFAULT,
+                commentStyle = HTML
+            )
     }
 
     fun applyToParams(params: BitGenerator.Params): BitGenerator.Params = when (this) {
         GENERIC -> params.defaults().copy(generateAnchors = true)
         GITLAB -> params.defaults()
-        GITHUB -> params.defaults().copy(concatSpaces = false)
+        GITLAB17, GITHUB -> params.defaults().copy(concatSpaces = false)
         DEVTO -> params.defaults().copy(anchorAlgorithm = AnchorAlgorithm.DEVTO, commentStyle = LIQUID)
     }
 
@@ -40,7 +46,7 @@ enum class BitProfiles(val displayName: String) {
         return when (this) {
             GENERIC -> optionsList(anchors = true)
             GITLAB -> optionsList()
-            GITHUB -> optionsList(concatSpaces = false)
+            GITLAB17, GITHUB -> optionsList(concatSpaces = false)
             DEVTO -> optionsList(anchorAlgorithm = AnchorAlgorithm.DEVTO, commentStyle = LIQUID)
         }
     }
