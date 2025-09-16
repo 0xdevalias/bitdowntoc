@@ -76,6 +76,10 @@ object BitGenerator {
             val codeMarker = listOf('`', '~').firstNotNullOfOrNull { line.getCodeStart(it) }
 
             if (!codeMarker.isNullOrBlank()) iter.consumeCode(codeMarker)
+            else if (line.isCompleteHtmlComment()) {
+                // Single-line HTML comment, keep in output but don't process for TOC
+            }
+            else if (line.isHtmlCommentStart()) iter.consumeHtmlComment()
             else if (commenter.isAnchor(line)) iter.remove()
             else {
                 line.parseHeader(toc)?.let {
@@ -122,9 +126,24 @@ object BitGenerator {
             .takeIf { it.startsWith("$char".repeat(3)) }
             ?.let { trimmedLine -> trimmedLine.takeWhile { it == char } }
 
+    private fun String.isHtmlCommentStart(): Boolean {
+        val trimmed = this.trim()
+        return trimmed.startsWith("<!--") && !trimmed.contains("TOC")
+    }
+
+    private fun String.isCompleteHtmlComment(): Boolean {
+        val trimmed = this.trim()
+        return trimmed.startsWith("<!--") && trimmed.endsWith("-->") && !trimmed.contains("TOC")
+    }
 
     private fun Iterator<String>.consumeCode(codeMarker: String) {
         while (this.hasNext() && !this.next().trim().startsWith(codeMarker));
+    }
+
+    private fun Iterator<String>.consumeHtmlComment() {
+        while (this.hasNext()) {
+            if (this.next().trim().endsWith("-->")) break
+        }
     }
 
     private fun Iterable<String>.asText() = this.joinToString(NL)
